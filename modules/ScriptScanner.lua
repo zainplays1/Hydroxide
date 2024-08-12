@@ -21,17 +21,24 @@ local function scan(query)
             if typeof(script) == "Instance" and 
                 not scripts[script] and 
                 script:IsA("LocalScript") and 
-                script.Name:lower():find(query) and
-                getScriptClosure(script) and
-                pcall(function() getsenv(script) end)
-            then
-                scripts[script] = LocalScript.new(script)
+                script.Name:lower():find(query) then
+                
+                -- Safely attempt to get the script's closure
+                local success, closure = pcall(function()
+                    return getScriptClosure(script)
+                end)
+                
+                -- Proceed only if the closure was successfully retrieved
+                if success and closure and pcall(function() getsenv(script) end) then
+                    scripts[script] = LocalScript.new(script)
+                end
             end
         end
     end
 
     return scripts
 end
+
 
 ScriptScanner.RequiredMethods = requiredMethods
 ScriptScanner.Scan = scan

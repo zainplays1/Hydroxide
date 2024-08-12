@@ -28,8 +28,7 @@ local function scan(query)
                     return getScriptClosure(script)
                 end)
                 
-                -- Proceed only if the closure was successfully retrieved
-                if success and closure and pcall(function() getsenv(script) end) then
+ccess and closure and pcall(function() getsenv(script) end) then
                     scripts[script] = LocalScript.new(script)
                 end
             end

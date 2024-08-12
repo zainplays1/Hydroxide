@@ -16,20 +16,22 @@ local function scan(query)
 
     for _i, v in pairs(getGc()) do
         if type(v) == "function" and not isXClosure(v) then
-            local script = rawget(getfenv(v), "script")
+            local success, script = pcall(function()
+                local s = rawget(getfenv(v), "script")
+                if typeof(s) == "Instance" and s:IsA("LocalScript") then
+                    -- Attempt a basic operation to filter out problematic scripts
+                    return getScriptClosure(s), s
+                end
+            end)
 
-            if typeof(script) == "Instance" and 
-                not scripts[script] and 
-                script:IsA("LocalScript") and 
-                script.Name:lower():find(query) then
-                
-                -- Safely attempt to get the script's closure
-                local success, closure = pcall(function()
-                    return getScriptClosure(script)
+            if success and script then
+                local closure, scriptInstance = script[1], script[2]
+                local envSuccess = pcall(function()
+                    return getsenv(scriptInstance)
                 end)
-                
-ccess and closure and pcall(function() getsenv(script) end) then
-                    scripts[script] = LocalScript.new(script)
+
+                if envSuccess then
+                    scripts[scriptInstance] = LocalScript.new(scriptInstance)
                 end
             end
         end
@@ -37,6 +39,7 @@ ccess and closure and pcall(function() getsenv(script) end) then
 
     return scripts
 end
+
 
 
 ScriptScanner.RequiredMethods = requiredMethods
